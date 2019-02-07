@@ -1,5 +1,8 @@
-import pickle
-import numpy as np
+import pickle, os
+
+
+DATA_PATH = os.path.expanduser("~/NLP_Data/")
+DATASET_FILE = DATA_PATH + "dataset.pickle"
 
 
 # returns data as a np array with first column "genre" and second column "lyrics"
@@ -8,7 +11,5 @@ def read_dataset(filename):
         return pickle.load(file)
 
 
-
-
-data = read_dataset("/home/felix/NLP_Data/dataset.pickle")
+data = read_dataset(DATASET_FILE)
 print(data)
