@@ -2,7 +2,7 @@
 In this project, we try to train a neural network to discover the genre of a music track only by looking 
 at its lyrics text.
 
-## Date set
+## Data set
 The data set we used can be found <a href="https://www.kaggle.com/gyani95/380000-lyrics-from-metrolyrics">on Kaggle</a>.<br/>
 It contains a total of 362.237 songs with additional information.<br/>
 The data contains the following columns:<br/>
