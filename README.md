@@ -23,16 +23,14 @@ languages and some of the data-samples don't contain any lyrics. Thus, some prep
 The preprocessing consists of several steps in order to convert the plaintext of the song-lyrics into a format that 
 is processable by a neural network.
 
-##### 1. Read data and filter for relevant data
+#### 1. Read data and filter for relevant data
 The .csv-file contains 362.237 songs. Filtering out the songs with empty lyrics, 266.557 songs remain. Also, we only 
 want to work with english songs. Therefore, we use the Python package <i>langid</i> to generate a new data column 
 named "language". Using this new column, we discover the language of each song and remove all non-english songs. 
 remove non-english tracks. After that, our data set has 240.643 songs with the following distribution over the genres:
-    
+
 | Genre             | Number samples |
 | ----------------- | :------------: |
-| ~~Rock~~          | 101.997        |
-| ~~Pop~~           | 34.489         |
 | Hip-Hop           | 22.422         |
 | Metal             | 22.134         |
 | Country           | 14.273         |
@@ -41,16 +39,18 @@ remove non-english tracks. After that, our data set has 240.643 songs with the f
 | R&B               | 3.321          |
 | Indie             | 2.996          |
 | Folk              | 1.849          |
+| ~~Rock~~          | 101.997        |
+| ~~Pop~~           | 34.489         |
 | ~~Not Available~~ | 18.497         |
 | ~~Other~~         | 3.976          |
 
-The genres Not Available and Other are removed. Also, we remove the genres Rock and Pop because we think that they
-might not be very distinguishable adhering only to the lyrics. Thus, we remain with a total of 81.684 songs.
+The genres "Not Available" and "Other" are removed. Also, we remove the genres "Rock" and "Pop" because we think that they
+might not be very distinguishable when looking only at the lyrics. Thus, we remain with a total of 81.684 songs. All the remaining lyrics are transformed to lowercase strings.
 
 On a machine with 8GB of RAM, a quad core Intel Core i7 CPU @ 3.40 GHz and running Manjaro Linux, the execution 
 of this first step took 1:30 minutes.
 
-##### 2. Expand contractions
+#### 2. Expand contractions
 In this step, all the lyrics texts are taken and the contractions are expanded. So the following text
 ```
 in better days i've been known to listen
@@ -66,7 +66,7 @@ i am mapping out my ending ...
 
 This step, on the same machine took around 2:25 minutes for the whole 81.684 songs.
 
-##### 3. Tokenization
+#### 3. Tokenization
 The lyrics, which are still encoded as normal strings, are now tokenized ignoring the sentence- or 
 newline-structure and simply considering the single words in their original order. The text from the previous
 example would then look like this:
@@ -78,7 +78,7 @@ all, my, time, is, missing, i, am, mapping, out, my, ending, ...]
 
 The tokenization only took about 6 seconds for the whole data set.
 
-##### 4. POS tagging and lemmatization
+#### 4. POS tagging and lemmatization
 In this step, the tokenized lyrics texts are taken, first POS tagged and then lemmatized. The POS tagging 
 converts the example text from above to pairs of `(word, POS tag)`:
 ```
@@ -95,7 +95,7 @@ all, my, time, be, miss, i, be, map, out, my, end, ...]
 POS tagging and lemmatization are the most time consuming tasks in the preprocessing pipeline and 
 together took about 19:30 minutes for all the samples.
 
-##### 5. Filter stopwords
+#### 5. Filter stopwords
 The last step is to filter out the stopwords from the lyrics texts as they don't contain any valuable 
 information we need. Removing the stopwords makes the texts quite shorter than before, as can be seen
 in the example text:
