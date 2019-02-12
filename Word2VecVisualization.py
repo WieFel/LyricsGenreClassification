@@ -12,7 +12,7 @@ DIMENSIONS = 300
 model = Word2Vec.load(DATA_PATH + "word2vec_model")
 
 # project part of vocab
-with open( DATA_PATH + "./projector/prefix_metadata.tsv", 'w+') as file_metadata:
+with open(DATA_PATH + "./projector/metadata.tsv", 'w+') as file_metadata:
     w2v_10K = np.zeros((len(model.wv.index2word), DIMENSIONS))
     for i, word in enumerate(model.wv.index2word):
         w2v_10K[i] = model[word]
@@ -22,23 +22,23 @@ with open( DATA_PATH + "./projector/prefix_metadata.tsv", 'w+') as file_metadata
 sess = tf.InteractiveSession()
 
 with tf.device("/cpu:0"):
-    embedding = tf.Variable(w2v_10K, trainable=False, name='word_embeddings')
+    embedding = tf.Variable(w2v_10K, trainable=False, name='lyrics_embeddings')
 
 tf.global_variables_initializer().run()
 
 saver = tf.train.Saver()
-writer = tf.summary.FileWriter('./projector', sess.graph)
+writer = tf.summary.FileWriter(DATA_PATH + './projector', sess.graph)
 
 # adding into projector
 config = projector.ProjectorConfig()
 embed = config.embeddings.add()
-embed.tensor_name = 'fs_embedding:0'
-embed.metadata_path = DATA_PATH + './projector/prefix_metadata.tsv'
+embed.tensor_name = 'lyrics_embeddings'
+embed.metadata_path = DATA_PATH + './projector/metadata.tsv'
 
 # Specify the width and height of a single thumbnail.
 projector.visualize_embeddings(writer, config)
 
-saver.save(sess, DATA_PATH + './projector/prefix_model.ckpt', global_step=10000)
+saver.save(sess, DATA_PATH + './projector/lyrics_model.ckpt', global_step=10000)
 
 # open tensorboard with logdir, check localhost:6006 for viewing your embedding.
 # tensorboard --logdir="./projector/"
