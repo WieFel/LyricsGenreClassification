@@ -92,44 +92,44 @@ def write_to_file(filename, data):
         pickle.dump(data, file)
 
 
-start = time.time()
+# ------------------------- MAIN CODE ------------------------- #
+if __name__ == "__main__":
+    start = time.time()
 
-# FIRST STEP: read csv and filter out bad data. only work with a smaller dataset size of NUMBER_SAMPLES
-if not os.path.isfile(FILTERED_DATA_SET):
-    # filtered data file doesn't exist -> generate it
-    print("Filtering original data set...")
-    data = read_genre_lyrics_data()
-    print("Writing filtered data to CSV...")
-    data.to_csv(FILTERED_DATA_SET)
-else:
-    # filtered data file exists -> read it
-    print("Reading filtered data set...")
-    data = pandas.read_csv(FILTERED_DATA_SET)
+    # FIRST STEP: read csv and filter out bad data. only work with a smaller dataset size of NUMBER_SAMPLES
+    if not os.path.isfile(FILTERED_DATA_SET):
+        # filtered data file doesn't exist -> generate it
+        print("Filtering original data set...")
+        data = read_genre_lyrics_data()
+        print("Writing filtered data to CSV...")
+        data.to_csv(FILTERED_DATA_SET)
+    else:
+        # filtered data file exists -> read it
+        print("Reading filtered data set...")
+        data = pandas.read_csv(FILTERED_DATA_SET)
 
+    # SECOND STEP: Expand contractions within the lyrics texts
+    print("Expanding contractions...")
+    expand_contractions(data)
 
-# SECOND STEP: Expand contractions within the lyrics texts
-print("Expanding contractions...")
-expand_contractions(data)
+    # THIRD STEP: Tokenize lyrics texts to get lists of single words
+    print("Tokenizing...")
+    tokenize(data)
 
-# THIRD STEP: Tokenize lyrics texts to get lists of single words
-print("Tokenizing...")
-tokenize(data)
+    # FOURTH STEP: POS-tag and lemmatize
+    print("POS-tagging...")
+    pos_tagging(data)
 
-# FOURTH STEP: POS-tag and lemmatize
-print("POS-tagging...")
-pos_tagging(data)
+    print("Lemmatizing...")
+    lemmatize(data)
 
-print("Lemmatizing...")
-lemmatize(data)
+    # FIFTH STEP: Filter out stopwords from word lists
+    print("Removing stopwords...")
+    filter_stopwords(data)
 
-# FIFTH STEP: Filter out stopwords from word lists
-print("Removing stopwords...")
-filter_stopwords(data)
+    print("Writing data to file...")
+    write_to_file(FINAL_OUTPUT, data)
 
-print("Writing data to file...")
-write_to_file(FINAL_OUTPUT, data)
-
-
-print("SUCCESS!")
-end = time.time()
-print("Total time elapsed: " + str((end - start)/60.0) + " min")
+    print("SUCCESS!")
+    end = time.time()
+    print("Time elapsed: " + str((end - start)/60.0) + " min")
