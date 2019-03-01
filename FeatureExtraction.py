@@ -4,7 +4,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from Preprocessing import DATA_PATH, FINAL_OUTPUT
 
-
 VECTORIZED_DATA = DATA_PATH + "vectorized_data.pickle"
 DIMENSIONS = 300
 
@@ -21,7 +20,7 @@ def identity_tokenizer(text):
 
 
 # calculates the tfidf vectors of the given corpus and returns the vectorizer and the feature vectors
-def tfidf_extractor(corpus, ngram_range=(1,1)):
+def tfidf_extractor(corpus, ngram_range=(1, 1)):
     vectorizer = TfidfVectorizer(min_df=1,
                                  norm='l2',
                                  smooth_idf=True,
@@ -76,7 +75,7 @@ def save_model(model, filename):
 
 # ------------------------- MAIN CODE ------------------------- #
 if __name__ == "__main__":
-    t1 = time.time()    # only for time measure purpose
+    t1 = time.time()  # only for time measure purpose
 
     print("Reading dataset...")
     data = read_dataset(FINAL_OUTPUT)
@@ -88,7 +87,7 @@ if __name__ == "__main__":
 
     print("Creating word2vec model...")
     model = gensim.models.Word2Vec(lyrics, size=DIMENSIONS, window=10, min_count=3, sample=1e-3)
-    save_model(model, "word2vec_model")     # save model to file (for eventual visualization)
+    save_model(model, "word2vec_model")  # save model to file (for eventual visualization)
 
     # transform information to feature matrix
     print("Creating feature data...")
@@ -96,10 +95,11 @@ if __name__ == "__main__":
                                                              tfidf_vectorizer.vocabulary_, model, DIMENSIONS)
 
     # store all the data inside one matrix with columns "feature-1 | feature-2 | ... | feature-n | genre-label"
-    vectorized_data = np.hstack(feature_matrix, data["genre"].values)   # horizontally stacks feature matrix and labels
+    vectorized_data = np.hstack(
+        (feature_matrix, genres.reshape((len(genres), 1))))  # horizontally stacks feature matrix and labels
 
     print("Writing vector data to file...")
     write_to_file(VECTORIZED_DATA, vectorized_data)
 
     print("Success!")
-    print("Time elapsed: " + str((time.time() - t1)/60.0) + " min")
+    print("Time elapsed: " + str((time.time() - t1) / 60.0) + " min")
