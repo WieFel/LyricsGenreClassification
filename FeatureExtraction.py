@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from Preprocessing import DATA_PATH, FINAL_OUTPUT
 
-VECTORIZED_DATA = DATA_PATH + "vectorized_data.pickle"
+VECTORIZED_DATA = DATA_PATH + "vectorized_data.npy"
 DIMENSIONS = 300
 
 
@@ -37,14 +37,13 @@ def tfidf_extractor(corpus, ngram_range=(1, 1)):
 
 # function to compute tfidf weighted averaged word vector for a document
 # this code has been taken from the book "Text Analysis with Python"
-def tfidf_wtd_avg_word_vector(words, tfidf_vector, tfidf_vocabulary, model, num_features):
+def tfidf_wtd_avg_word_vector(words, tfidf_vector, tfidf_vocabulary, model, model_vocabulary, num_features):
     word_tfidfs = [tfidf_vector[0, tfidf_vocabulary.get(word)] if tfidf_vocabulary.get(word) else 0 for word in words]
     word_tfidf_map = {word: tfidf_val for word, tfidf_val in zip(words, word_tfidfs)}
     feature_vector = np.zeros((num_features,), dtype="float64")
-    vocabulary = set(model.wv.index2word)
     wts = 0.
     for word in words:
-        if word in vocabulary:
+        if word in model_vocabulary:
             word_vector = model[word]
             weighted_word_vector = word_tfidf_map[word] * word_vector
             wts = wts + word_tfidf_map[word]
@@ -57,15 +56,10 @@ def tfidf_wtd_avg_word_vector(words, tfidf_vector, tfidf_vocabulary, model, num_
 # generalize above function for a corpus of documents
 def tfidf_weighted_averaged_word_vectorizer(documents, tfidf_vectors, tfidf_vocabulary, model, num_features):
     docs_tfidfs = [(doc, doc_tfidf) for doc, doc_tfidf in zip(documents, tfidf_vectors)]
-    features = [tfidf_wtd_avg_word_vector(tokenized_sentence, tfidf, tfidf_vocabulary, model, num_features)
+    vocabulary = set(model.wv.index2word)
+    features = [tfidf_wtd_avg_word_vector(tokenized_sentence, tfidf, tfidf_vocabulary, model, vocabulary, num_features)
                 for tokenized_sentence, tfidf in docs_tfidfs]
     return np.array(features)
-
-
-# writes the passed data to the file "filename"
-def write_to_file(filename, data):
-    with open(filename, "wb") as file:
-        pickle.dump(data, file)
 
 
 # saves the word2vec model to a file in order to be used for classification
@@ -99,7 +93,7 @@ if __name__ == "__main__":
         (feature_matrix, genres.reshape((len(genres), 1))))  # horizontally stacks feature matrix and labels
 
     print("Writing vector data to file...")
-    write_to_file(VECTORIZED_DATA, vectorized_data)
+    np.save(VECTORIZED_DATA, vectorized_data)   # save matrix to file using numpy
 
     print("Success!")
     print("Time elapsed: " + str((time.time() - t1) / 60.0) + " min")
