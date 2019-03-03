@@ -1,5 +1,6 @@
 import pandas, pickle, os, time
 import langid
+import numpy as np
 from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import RegexpTokenizer
 from nltk import pos_tag, WordNetLemmatizer
@@ -9,7 +10,7 @@ from contraction_helper import expand_contractions_in_text
 DATA_PATH = os.path.expanduser("~/NLP_Data/")
 ORIGINAL_DATA_SET = DATA_PATH + "lyrics.csv"
 FILTERED_DATA_SET = DATA_PATH + "filtered_lyrics.csv"
-FINAL_OUTPUT = DATA_PATH + "dataset.pickle"
+FINAL_OUTPUT = DATA_PATH + "dataset.npy"
 
 
 # reads the CSV data and does some basic filtering
@@ -31,6 +32,7 @@ def read_genre_lyrics_data():
 
     d["lyrics"] = d["lyrics"].map(str)  # convert back to normal string to apply lowercase
     d["lyrics"] = d["lyrics"].map(str.lower)  # convert lyrics to only lowercase
+    print(d)
     return d
 
 
@@ -86,12 +88,6 @@ def filter_stopwords(data):
     data["lyrics"] = data["lyrics"].map(lambda words: filter(lambda w: w not in stop_words, words))
 
 
-# writes the passed data to the file "filename"
-def write_to_file(filename, data):
-    with open(filename, "wb") as file:
-        pickle.dump(data, file)
-
-
 # ------------------------- MAIN CODE ------------------------- #
 if __name__ == "__main__":
     start = time.time()
@@ -128,7 +124,7 @@ if __name__ == "__main__":
     filter_stopwords(data)
 
     print("Writing data to file...")
-    write_to_file(FINAL_OUTPUT, data)
+    np.save(FINAL_OUTPUT, data[["genre","lyrics"]].values)
 
     print("SUCCESS!")
     end = time.time()

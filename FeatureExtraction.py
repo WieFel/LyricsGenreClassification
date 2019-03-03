@@ -8,12 +8,6 @@ VECTORIZED_DATA = DATA_PATH + "vectorized_data.npy"
 DIMENSIONS = 300
 
 
-# returns data as pandas dataframe
-def read_dataset(filename):
-    with open(filename, "rb") as file:
-        return pickle.load(file)
-
-
 # identity function for tokenizer
 def identity_tokenizer(text):
     return text
@@ -72,9 +66,9 @@ if __name__ == "__main__":
     t1 = time.time()  # only for time measure purpose
 
     print("Reading dataset...")
-    data = read_dataset(FINAL_OUTPUT)
-    genres = data["genre"].values
-    lyrics = data["lyrics"].values
+    data = np.load(FINAL_OUTPUT)
+    genres = data[:, 0]     # take first column: genres
+    lyrics = data[:, 1]     # take second column: lyrics
 
     print("Creating TF-IDF model...")
     tfidf_vectorizer, tfidf_features = tfidf_extractor(lyrics)
@@ -85,7 +79,7 @@ if __name__ == "__main__":
 
     # transform information to feature matrix
     print("Creating feature data...")
-    feature_matrix = tfidf_weighted_averaged_word_vectorizer(data["lyrics"].values, tfidf_features,
+    feature_matrix = tfidf_weighted_averaged_word_vectorizer(lyrics, tfidf_features,
                                                              tfidf_vectorizer.vocabulary_, model, DIMENSIONS)
 
     # store all the data inside one matrix with columns "feature-1 | feature-2 | ... | feature-n | genre-label"

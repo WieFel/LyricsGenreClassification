@@ -11,12 +11,10 @@ def read_dataset(filename):
 
 
 print("Reading dataset...")
-data = read_dataset(FINAL_OUTPUT)
+data = np.load(FINAL_OUTPUT)
+genres = data[:, 0]     # take first column: genres
+lyrics = data[:, 1]     # take second column: lyrics
 
-# TODO COMMENT THE NEXT LINE TO USE ALL GENRES
-data = data[(data.genre == "Hip-Hop") | (data.genre == "Metal") | (data.genre == "Country")]
-lyrics = data["lyrics"].values
-genres = data["genre"].values
 len_data = len(data)
 
 max_len = 0
@@ -27,9 +25,14 @@ for l in lyrics:
 BATCH_SIZE = 128
 EMBEDDING_DIMENSION = 64
 NUM_CLASSES = len(set(genres))
+TRAINING_PARTITION_SIZE = 0.7  # percent
+
+# network parameters
 HIDDEN_LAYER_SIZE = 32
-TRAINING_PARTITION_SIZE = 0.7
-# element_size = 1
+NUM_LSTM_LAYERS = 2
+
+LEARNING_RATE = 0.001
+DECAY = 0.9
 
 seqlens = []
 
@@ -79,8 +82,7 @@ test_y = labels[(int(len(data_indices) * TRAINING_PARTITION_SIZE)):]
 test_seqlens = seqlens[(int(len(data_indices) * TRAINING_PARTITION_SIZE)):]
 
 
-def get_sentence_batch(batch_size, data_x,
-                       data_y, data_seqlens):
+def get_sentence_batch(batch_size, data_x, data_y, data_seqlens):
     instance_indices = list(range(len(data_x)))
     np.random.shuffle(instance_indices)
     batch = instance_indices[:batch_size]
@@ -97,41 +99,39 @@ _labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, NUM_CLASSES])
 _seqlens = tf.placeholder(tf.int32, shape=[BATCH_SIZE])
 
 with tf.name_scope("embeddings"):
-    embeddings = tf.Variable(
-        tf.random_uniform([vocabulary_size,
-                           EMBEDDING_DIMENSION],
-                          -1.0, 1.0), name='embedding')
+    embeddings = tf.Variable(tf.random_uniform([vocabulary_size, EMBEDDING_DIMENSION], -1.0, 1.0), name='embedding')
     embed = tf.nn.embedding_lookup(embeddings, _inputs)
 
-num_LSTM_layers = 2
 with tf.variable_scope("lstm"):
     # Define a function that gives the output in the right shape
     def lstm_cell():
         return tf.contrib.rnn.BasicLSTMCell(HIDDEN_LAYER_SIZE, forget_bias=1.0)
 
 
-    cell = tf.contrib.rnn.MultiRNNCell(cells=[lstm_cell() for _ in range(num_LSTM_layers)],
+    cell = tf.contrib.rnn.MultiRNNCell(cells=[lstm_cell() for _ in range(NUM_LSTM_LAYERS)],
                                        state_is_tuple=True)
     outputs, states = tf.nn.dynamic_rnn(cell, embed,
                                         sequence_length=_seqlens,
                                         dtype=tf.float32)
 
+# randomly initialize weights
 weights = {
-    'linear_layer': tf.Variable(tf.truncated_normal([HIDDEN_LAYER_SIZE, NUM_CLASSES],
-                                                    mean=0, stddev=.01))
+    'linear_layer': tf.Variable(tf.truncated_normal([HIDDEN_LAYER_SIZE, NUM_CLASSES], mean=0, stddev=.01))
 }
+
+# randomly initialize biases
 biases = {
     'linear_layer': tf.Variable(tf.truncated_normal([NUM_CLASSES], mean=0, stddev=.01))
 }
 # extract the last relevant output and use in a linear layer
-final_output = tf.matmul(states[num_LSTM_layers - 1][1],
+final_output = tf.matmul(states[NUM_LSTM_LAYERS - 1][1],
                          weights["linear_layer"]) + biases["linear_layer"]
 
 softmax = tf.nn.softmax_cross_entropy_with_logits(logits=final_output,
                                                   labels=_labels)
 cross_entropy = tf.reduce_mean(softmax)
 
-train_step = tf.train.RMSPropOptimizer(0.001, 0.9).minimize(cross_entropy)
+train_step = tf.train.RMSPropOptimizer(LEARNING_RATE, DECAY).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(_labels, 1),
                               tf.argmax(final_output, 1))
 accuracy = (tf.reduce_mean(tf.cast(correct_prediction,
@@ -141,9 +141,7 @@ with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
     for step in range(1000):
-        x_batch, y_batch, seqlen_batch = get_sentence_batch(BATCH_SIZE,
-                                                            train_x, train_y,
-                                                            train_seqlens)
+        x_batch, y_batch, seqlen_batch = get_sentence_batch(BATCH_SIZE, train_x, train_y, train_seqlens)
         sess.run(train_step, feed_dict={_inputs: x_batch, _labels: y_batch,
                                         _seqlens: seqlen_batch})
 
@@ -154,9 +152,7 @@ with tf.Session() as sess:
             print("Accuracy at %d: %.5f" % (step, acc))
 
     for test_batch in range(5):
-        x_test, y_test, seqlen_test = get_sentence_batch(BATCH_SIZE,
-                                                         test_x, test_y,
-                                                         test_seqlens)
+        x_test, y_test, seqlen_test = get_sentence_batch(BATCH_SIZE, test_x, test_y, test_seqlens)
         batch_pred, batch_acc = sess.run([tf.argmax(final_output, 1), accuracy],
                                          feed_dict={_inputs: x_test,
                                                     _labels: y_test,
