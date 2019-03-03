@@ -27,7 +27,7 @@ is processable by a neural network.
 The .csv-file contains 362.237 songs. Filtering out the songs with empty lyrics, 266.557 songs remain. Also, we only 
 want to work with english songs. Therefore, we use the Python package <i>langid</i> to generate a new data column 
 named "language". Using this new column, we discover the language of each song and remove all non-english songs. 
-remove non-english tracks. After that, our data set has 240.643 songs with the following distribution over the genres:
+After that, our data set has 240.643 songs with the following distribution over the genres:
 
 | Genre             | Number samples |
 | ----------------- | :------------: |
@@ -48,7 +48,7 @@ The genres "Not Available" and "Other" are removed. Also, we remove the genres "
 might not be very distinguishable when looking only at the lyrics. Thus, we remain with a total of 81.684 songs. All the remaining lyrics are transformed to lowercase strings.
 
 On a machine with 8GB of RAM, a quad core Intel Core i7 CPU @ 3.40 GHz and running Manjaro Linux, the execution 
-of this first step took 1:30 minutes.
+of this first step took about 23 minutes.
 
 #### 2. Expand contractions
 In this step, all the lyrics texts are taken and the contractions are expanded. So the following text
