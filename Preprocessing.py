@@ -28,7 +28,7 @@ def read_genre_lyrics_data():
     d = d[(d.language == "en")]  # filter out english songs only
     d = d[["genre", "lyrics"]]  # again select only the two relevant columns genre and lyrics
     d = d[(d.genre != "Not Available") & (d.genre != "Other")]  # filter out genres "Not Available" and "Other"
-    d = d[(d.genre != "Rock") & (d.genre != "Pop") & (d.genre != "Indie")]  # ignore genres Rock and Pop
+    d = d[(d.genre != "Rock") & (d.genre != "Pop") & (d.genre != "Indie") & (d.genre != "Folk")]  # ignore genres Rock and Pop
 
     d["lyrics"] = d["lyrics"].map(str)  # convert back to normal string to apply lowercase
     d["lyrics"] = d["lyrics"].map(str.lower)  # convert lyrics to only lowercase
