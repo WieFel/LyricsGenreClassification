@@ -20,16 +20,19 @@ features = data[:, :-1]  # take first column: lyrics
 genres = data[:, -1]  # take last column: genres
 
 # Parameters
-learning_rate = 0.0005
+learning_rate = 0.000001
 num_steps = 10000
 batch_size = 128
 display_step = 1000
 
 # Network Parameters
-n_hidden_1 = 256  # 1st layer number of neurons
-n_hidden_2 = 256  # 2nd layer number of neurons
-n_hidden_3 = 256  # 3nd layer number of neurons
-n_hidden_4 = 256  # 3nd layer number of neurons
+n_hidden_1 = 128  # 1st layer number of neurons
+n_hidden_2 = 128  # 2nd layer number of neurons
+n_hidden_3 = 128  # 3nd layer number of neurons
+n_hidden_4 = 128  # 3nd layer number of neurons
+n_hidden_5 = 128  # 3nd layer number of neurons
+n_hidden_6 = 128  # 3nd layer number of neurons
+n_hidden_7 = 128  # 3nd layer number of neurons
 num_input = DIMENSIONS
 num_classes = len(set(genres))
 
@@ -72,13 +75,19 @@ for train_indices, test_indices in k_fold.split(features):
         'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
         'h3': tf.Variable(tf.random_normal([n_hidden_2, n_hidden_3])),
         'h4': tf.Variable(tf.random_normal([n_hidden_3, n_hidden_4])),
-        'out': tf.Variable(tf.random_normal([n_hidden_2, num_classes]))
+        'h5': tf.Variable(tf.random_normal([n_hidden_4, n_hidden_5])),
+        'h6': tf.Variable(tf.random_normal([n_hidden_5, n_hidden_6])),
+        'h7': tf.Variable(tf.random_normal([n_hidden_6, n_hidden_7])),
+        'out': tf.Variable(tf.random_normal([n_hidden_7, num_classes]))
     }
     biases = {
         'b1': tf.Variable(tf.random_normal([n_hidden_1])),
         'b2': tf.Variable(tf.random_normal([n_hidden_2])),
         'b3': tf.Variable(tf.random_normal([n_hidden_3])),
         'b4': tf.Variable(tf.random_normal([n_hidden_4])),
+        'b5': tf.Variable(tf.random_normal([n_hidden_5])),
+        'b6': tf.Variable(tf.random_normal([n_hidden_6])),
+        'b7': tf.Variable(tf.random_normal([n_hidden_7])),
         'out': tf.Variable(tf.random_normal([num_classes]))
     }
 
@@ -89,12 +98,14 @@ for train_indices, test_indices in k_fold.split(features):
         layer_1 = tf.nn.relu(tf.add(tf.matmul(x, weights['h1']), biases['b1']))
         # Hidden fully connected layer with 256 neurons
         layer_2 = tf.nn.relu(tf.add(tf.matmul(layer_1, weights['h2']), biases['b2']))
-
-        # layer_3 = tf.nn.relu(tf.add(tf.matmul(layer_2, weights['h3']), biases['b3']))
-        # layer_4 = tf.nn.relu(tf.add(tf.matmul(layer_3, weights['h4']), biases['b4']))
+        layer_3 = tf.nn.relu(tf.add(tf.matmul(layer_2, weights['h3']), biases['b3']))
+        layer_4 = tf.nn.relu(tf.add(tf.matmul(layer_3, weights['h4']), biases['b4']))
+        layer_5 = tf.nn.relu(tf.add(tf.matmul(layer_4, weights['h5']), biases['b5']))
+        layer_6 = tf.nn.relu(tf.add(tf.matmul(layer_5, weights['h6']), biases['b6']))
+        layer_7 = tf.nn.relu(tf.add(tf.matmul(layer_6, weights['h7']), biases['b7']))
 
         # Output fully connected layer with a neuron for each class
-        out_layer = tf.matmul(layer_2, weights['out']) + biases['out']
+        out_layer = tf.matmul(layer_7, weights['out']) + biases['out']
         return out_layer
 
 
