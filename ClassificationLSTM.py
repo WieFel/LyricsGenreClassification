@@ -82,15 +82,39 @@ test_y = labels[(int(len(data_indices) * TRAINING_PARTITION_SIZE)):]
 test_seqlens = seqlens[(int(len(data_indices) * TRAINING_PARTITION_SIZE)):]
 
 
-def get_sentence_batch(batch_size, data_x, data_y, data_seqlens):
+def get_batches(batch_size, data_x, data_y, data_seqlens):
     instance_indices = list(range(len(data_x)))
     np.random.shuffle(instance_indices)
-    batch = instance_indices[:batch_size]
-    x = [[word2index_map[word] for word in data_x[i]]
-         for i in batch]
-    y = [data_y[i] for i in batch]
-    seqlens = [data_seqlens[i] for i in batch]
-    return x, y, seqlens
+
+    x_batches = []
+    y_batches = []
+    batch_seqlens = []
+
+    # create all the batches at once and return them
+    i = 0
+    while (i+1) * batch_size < len(data_x):
+        batch = instance_indices[i * batch_size: (i+1) * batch_size]
+        x = [[word2index_map[word] for word in data_x[j]] for j in batch]
+        y = [data_y[j] for j in batch]
+        seqlens = [data_seqlens[j] for j in batch]
+
+        # append batches to the batch lists
+        x_batches.append(x)
+        y_batches.append(y)
+        batch_seqlens.append(seqlens)
+        i += 1
+
+    # append also very last batch, which may not have the complete batch_size (contains remaining fraction)
+    batch = instance_indices[i * batch_size:]
+    x = [[word2index_map[word] for word in data_x[j]] for j in batch]
+    y = [data_y[j] for j in batch]
+    seqlens = [data_seqlens[j] for j in batch]
+    # append last batches to the batch lists
+    x_batches.append(x)
+    y_batches.append(y)
+    batch_seqlens.append(seqlens)
+
+    return x_batches, y_batches, batch_seqlens
 
 
 _inputs = tf.placeholder(tf.int32, shape=[BATCH_SIZE, max_len])
@@ -132,18 +156,16 @@ softmax = tf.nn.softmax_cross_entropy_with_logits(logits=final_output,
 cross_entropy = tf.reduce_mean(softmax)
 
 train_step = tf.train.RMSPropOptimizer(LEARNING_RATE, DECAY).minimize(cross_entropy)
-correct_prediction = tf.equal(tf.argmax(_labels, 1),
-                              tf.argmax(final_output, 1))
-accuracy = (tf.reduce_mean(tf.cast(correct_prediction,
-                                   tf.float32))) * 100
+correct_prediction = tf.equal(tf.argmax(_labels, 1), tf.argmax(final_output, 1))
+accuracy = (tf.reduce_mean(tf.cast(correct_prediction, tf.float32))) * 100
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
-    for step in range(1000):
-        x_batch, y_batch, seqlen_batch = get_sentence_batch(BATCH_SIZE, train_x, train_y, train_seqlens)
-        sess.run(train_step, feed_dict={_inputs: x_batch, _labels: y_batch,
-                                        _seqlens: seqlen_batch})
+    x_batches, y_batches, batch_seqlens = get_batches(BATCH_SIZE, train_x, train_y, train_seqlens)
+    for step in range(len(x_batches)):
+        x_batch, y_batch, seqlen_batch = x_batches[step], y_batches[step], batch_seqlens[step]
+        sess.run(train_step, feed_dict={_inputs: x_batch, _labels: y_batch,_seqlens: seqlen_batch})
 
         if step % 100 == 0:
             acc = sess.run(accuracy, feed_dict={_inputs: x_batch,
@@ -151,10 +173,11 @@ with tf.Session() as sess:
                                                 _seqlens: seqlen_batch})
             print("Accuracy at %d: %.5f" % (step, acc))
 
-    for test_batch in range(5):
-        x_test, y_test, seqlen_test = get_sentence_batch(BATCH_SIZE, test_x, test_y, test_seqlens)
+    x_test_batches, y_test_batches, test_seqlen_batches = get_batches(BATCH_SIZE, test_x, test_y, test_seqlens)
+    for step in range(len(x_test_batches)):
+        x_test, y_test, seqlen_test = x_test_batches[step], y_test_batches[step], test_seqlen_batches[step]
         batch_pred, batch_acc = sess.run([tf.argmax(final_output, 1), accuracy],
                                          feed_dict={_inputs: x_test,
                                                     _labels: y_test,
                                                     _seqlens: seqlen_test})
-        print("Test batch accuracy %d: %.5f" % (test_batch, batch_acc))
+        print("Test batch accuracy %d: %.5f" % (step, batch_acc))

@@ -5,13 +5,29 @@ from sklearn.model_selection import train_test_split, KFold
 from collections import Counter
 
 
-def get_batch(batch_size, data_x, data_y):
+def get_batches(batch_size, data_x, data_y):
     instance_indices = list(range(len(data_x)))
     np.random.shuffle(instance_indices)
-    batch = instance_indices[:batch_size]
-    x = [data_x[i] for i in batch]
-    y = [data_y[i] for i in batch]
-    return np.array(x), np.array(y)
+    x_batches = []
+    y_batches = []
+
+    # create all batches for x and y
+    i = 0
+    while (i + 1) * batch_size < len(data_x):
+        batch = instance_indices[i * batch_size:(i + 1) * batch_size]
+        x = np.array([data_x[i] for i in batch])
+        y = np.array([data_y[i] for i in batch])
+        x_batches.append(x)
+        y_batches.append(y)
+
+    # append last batch to batch lists
+    batch = instance_indices[i * batch_size:]
+    x = np.array([data_x[i] for i in batch])
+    y = np.array([data_y[i] for i in batch])
+    x_batches.append(x)
+    y_batches.append(y)
+
+    return x_batches, y_batches
 
 
 print("Reading dataset...")
@@ -50,7 +66,6 @@ for i in range(len(genres)):
     one_hot_encoding = [0] * num_classes
     one_hot_encoding[label] = 1
     labels[i, :] = np.array(one_hot_encoding)
-
 
 accuracies = []
 # perform k-fold cross validation with k=5
@@ -130,8 +145,9 @@ for train_indices, test_indices in k_fold.split(features):
         # Run the initializer
         sess.run(init)
 
-        for step in range(1, num_steps + 1):
-            batch_x, batch_y = get_batch(batch_size, X_train, y_train)
+        x_batches, y_batches = get_batches(batch_size, X_train, y_train)
+        for step in range(len(x_batches)):
+            batch_x, batch_y = x_batches[step], y_batches[step]
             # Run optimization op (backprop)
             sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
 
@@ -147,4 +163,4 @@ for train_indices, test_indices in k_fold.split(features):
         print("Testing Accuracy:", accuracy)
         accuracies.append(accuracy)
 
-print("Average accuracy: " + str(float(sum(accuracies))/len(accuracies)))
+print("Average accuracy: " + str(float(sum(accuracies)) / len(accuracies)))
