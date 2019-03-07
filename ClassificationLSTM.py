@@ -22,6 +22,7 @@ for l in lyrics:
     if len(l) > max_len:
         max_len = len(l)
 
+EPOCHS = 10
 BATCH_SIZE = 128
 EMBEDDING_DIMENSION = 64
 NUM_CLASSES = len(set(genres))
@@ -94,8 +95,8 @@ def get_batches(batch_size, data_x, data_y, data_seqlens):
     i = 0
     while (i+1) * batch_size < len(data_x):
         batch = instance_indices[i * batch_size: (i+1) * batch_size]
-        x = [[word2index_map[word] for word in data_x[j]] for j in batch]
-        y = [data_y[j] for j in batch]
+        x = np.array([[word2index_map[word] for word in data_x[j]] for j in batch])
+        y = np.array([data_y[j] for j in batch])
         seqlens = [data_seqlens[j] for j in batch]
 
         # append batches to the batch lists
@@ -105,14 +106,14 @@ def get_batches(batch_size, data_x, data_y, data_seqlens):
         i += 1
 
     # append also very last batch, which may not have the complete batch_size (contains remaining fraction)
-    batch = instance_indices[i * batch_size:]
-    x = [[word2index_map[word] for word in data_x[j]] for j in batch]
-    y = [data_y[j] for j in batch]
-    seqlens = [data_seqlens[j] for j in batch]
-    # append last batches to the batch lists
-    x_batches.append(x)
-    y_batches.append(y)
-    batch_seqlens.append(seqlens)
+    # batch = instance_indices[i * batch_size:]
+    # x = np.array([[word2index_map[word] for word in data_x[j]] for j in batch])
+    # y = np.array([data_y[j] for j in batch])
+    # seqlens = [data_seqlens[j] for j in batch]
+    # # append last batches to the batch lists
+    # x_batches.append(x)
+    # y_batches.append(y)
+    # batch_seqlens.append(seqlens)
 
     return x_batches, y_batches, batch_seqlens
 
@@ -162,16 +163,17 @@ accuracy = (tf.reduce_mean(tf.cast(correct_prediction, tf.float32))) * 100
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
-    x_batches, y_batches, batch_seqlens = get_batches(BATCH_SIZE, train_x, train_y, train_seqlens)
-    for step in range(len(x_batches)):
-        x_batch, y_batch, seqlen_batch = x_batches[step], y_batches[step], batch_seqlens[step]
-        sess.run(train_step, feed_dict={_inputs: x_batch, _labels: y_batch,_seqlens: seqlen_batch})
+    for epoch in range(EPOCHS):
+        x_batches, y_batches, batch_seqlens = get_batches(BATCH_SIZE, train_x, train_y, train_seqlens)
+        for step in range(len(x_batches)):
+            x_batch, y_batch, seqlen_batch = x_batches[step], y_batches[step], batch_seqlens[step]
+            sess.run(train_step, feed_dict={_inputs: x_batch, _labels: y_batch,_seqlens: seqlen_batch})
 
-        if step % 100 == 0:
+        if epoch % 1 == 0:
             acc = sess.run(accuracy, feed_dict={_inputs: x_batch,
                                                 _labels: y_batch,
                                                 _seqlens: seqlen_batch})
-            print("Accuracy at %d: %.5f" % (step, acc))
+            print("Accuracy at %d: %.5f" % (epoch, acc))
 
     x_test_batches, y_test_batches, test_seqlen_batches = get_batches(BATCH_SIZE, test_x, test_y, test_seqlens)
     for step in range(len(x_test_batches)):
