@@ -15,15 +15,16 @@ def get_batches(batch_size, data_x, data_y):
     i = 0
     while (i + 1) * batch_size < len(data_x):
         batch = instance_indices[i * batch_size:(i + 1) * batch_size]
-        x = np.array([data_x[i] for i in batch])
-        y = np.array([data_y[i] for i in batch])
+        x = np.array([data_x[j] for j in batch])
+        y = np.array([data_y[j] for j in batch])
         x_batches.append(x)
         y_batches.append(y)
+        i += 1
 
     # append last batch to batch lists
     batch = instance_indices[i * batch_size:]
-    x = np.array([data_x[i] for i in batch])
-    y = np.array([data_y[i] for i in batch])
+    x = np.array([data_x[j] for j in batch])
+    y = np.array([data_y[j] for j in batch])
     x_batches.append(x)
     y_batches.append(y)
 
@@ -36,10 +37,10 @@ features = data[:, :-1]  # take first column: lyrics
 genres = data[:, -1]  # take last column: genres
 
 # Parameters
-learning_rate = 0.000001
-num_steps = 10000
+learning_rate = 0.01
+epochs = 500
 batch_size = 128
-display_step = 1000
+display_step = 50
 
 # Network Parameters
 n_hidden_1 = 128  # 1st layer number of neurons
@@ -67,18 +68,23 @@ for i in range(len(genres)):
     one_hot_encoding[label] = 1
     labels[i, :] = np.array(one_hot_encoding)
 
+
+# X_learn, X_test, y_learn, y_test = train_test_split(features, labels, test_size=0.2)
+X_learn = features
+y_learn = labels
+
 accuracies = []
 # perform k-fold cross validation with k=5
 k_fold = KFold(n_splits=5)
-for train_indices, test_indices in k_fold.split(features):
-    X_train, X_test = features[train_indices], features[test_indices]
-    y_train, y_test = labels[train_indices], labels[test_indices]
+for train_indices, test_indices in k_fold.split(X_learn):
+    X_train, X_validation = features[train_indices], features[test_indices]
+    y_train, y_validation = y_learn[train_indices], y_learn[test_indices]
 
     # print counts of each genre
     ytrain = [index_to_genre[np.nonzero(onehot)[0][0]] for onehot in y_train]
-    ytest = [index_to_genre[np.nonzero(onehot)[0][0]] for onehot in y_test]
+    yval = [index_to_genre[np.nonzero(onehot)[0][0]] for onehot in y_validation]
     print("y_train: " + str(Counter(ytrain)))
-    print("y_test: " + str(Counter(ytest)))
+    print("y_validation: " + str(Counter(yval)))
 
     # tf Graph input
     X = tf.placeholder("float", [None, num_input])
@@ -115,12 +121,12 @@ for train_indices, test_indices in k_fold.split(features):
         layer_2 = tf.nn.relu(tf.add(tf.matmul(layer_1, weights['h2']), biases['b2']))
         layer_3 = tf.nn.relu(tf.add(tf.matmul(layer_2, weights['h3']), biases['b3']))
         layer_4 = tf.nn.relu(tf.add(tf.matmul(layer_3, weights['h4']), biases['b4']))
-        layer_5 = tf.nn.relu(tf.add(tf.matmul(layer_4, weights['h5']), biases['b5']))
-        layer_6 = tf.nn.relu(tf.add(tf.matmul(layer_5, weights['h6']), biases['b6']))
-        layer_7 = tf.nn.relu(tf.add(tf.matmul(layer_6, weights['h7']), biases['b7']))
+        # layer_5 = tf.nn.relu(tf.add(tf.matmul(layer_4, weights['h5']), biases['b5']))
+        # layer_6 = tf.nn.relu(tf.add(tf.matmul(layer_5, weights['h6']), biases['b6']))
+        # layer_7 = tf.nn.relu(tf.add(tf.matmul(layer_6, weights['h7']), biases['b7']))
 
         # Output fully connected layer with a neuron for each class
-        out_layer = tf.matmul(layer_7, weights['out']) + biases['out']
+        out_layer = tf.matmul(layer_4, weights['out']) + biases['out']
         return out_layer
 
 
@@ -145,22 +151,23 @@ for train_indices, test_indices in k_fold.split(features):
         # Run the initializer
         sess.run(init)
 
-        x_batches, y_batches = get_batches(batch_size, X_train, y_train)
-        for step in range(len(x_batches)):
-            batch_x, batch_y = x_batches[step], y_batches[step]
-            # Run optimization op (backprop)
-            sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
+        for epoch in range(epochs):
+            x_batches, y_batches = get_batches(batch_size, X_train, y_train)
+            for step in range(len(x_batches)):
+                batch_x, batch_y = x_batches[step], y_batches[step]
+                # Run optimization op (backprop)
+                sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
 
-            if step % display_step == 0 or step == 1:
+            if epoch % display_step == 0 or epoch == 1:
                 # Calculate batch loss and accuracy
                 loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x, Y: batch_y})
-                print("Step " + str(step) + ", Minibatch Loss= " + "{:.4f}".format(
+                print("Epoch " + str(epoch) + ", Minibatch Loss= " + "{:.4f}".format(
                     loss) + ", Training Accuracy= " + "{:.3f}".format(acc))
 
         print("Optimization Finished!")
 
-        accuracy = sess.run(accuracy, feed_dict={X: X_test, Y: y_test})
-        print("Testing Accuracy:", accuracy)
+        accuracy = sess.run(accuracy, feed_dict={X: X_validation, Y: y_validation})
+        print("Validation Accuracy: ", accuracy)
         accuracies.append(accuracy)
 
 print("Average accuracy: " + str(float(sum(accuracies)) / len(accuracies)))
