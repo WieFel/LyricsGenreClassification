@@ -2,9 +2,9 @@ import pickle, os, time
 import gensim
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
-from Preprocessing import DATA_PATH, FINAL_OUTPUT
+from Preprocessing import DATA_PATH, FINAL_OUTPUT, FILE_NAME
 
-VECTORIZED_DATA = DATA_PATH + "vectorized_data.npy"
+VECTORIZED_DATA = DATA_PATH + FILE_NAME + "_vectorized.npy"
 DIMENSIONS = 300
 
 
@@ -67,8 +67,8 @@ if __name__ == "__main__":
 
     print("Reading dataset...")
     data = np.load(FINAL_OUTPUT)
-    genres = data[:, 0]     # take first column: genres
-    lyrics = data[:, 1]     # take second column: lyrics
+    genres = data[:, 0]  # take first column: genres
+    lyrics = data[:, 1]  # take second column: lyrics
 
     print("Creating TF-IDF model...")
     tfidf_vectorizer, tfidf_features = tfidf_extractor(lyrics)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         (feature_matrix, genres.reshape((len(genres), 1))))  # horizontally stacks feature matrix and labels
 
     print("Writing vector data to file...")
-    np.save(VECTORIZED_DATA, vectorized_data)   # save matrix to file using numpy
+    np.save(VECTORIZED_DATA, vectorized_data)  # save matrix to file using numpy
 
     print("Success!")
     print("Time elapsed: " + str((time.time() - t1) / 60.0) + " min")
