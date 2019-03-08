@@ -4,12 +4,20 @@ from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import RegexpTokenizer
 from nltk import pos_tag, WordNetLemmatizer
 from contraction_helper import expand_contractions_in_text
-import cld2
+import cld2, sys
+
+
+# if no argument supplied -> exit
+if len(sys.argv) <= 1:
+    print("No argument supplied!")
+    exit(1)
+
+# get file name as argument
+FILE_NAME = sys.argv[1]
 
 DATA_PATH = os.path.expanduser("~/NLP_Data/")
-ORIGINAL_DATA_SET = DATA_PATH + "final_55plus.csv"
-FILTERED_DATA_SET = DATA_PATH + "filtered_lyrics.csv"
-FINAL_OUTPUT = DATA_PATH + "dataset_55plus.npy"
+ORIGINAL_DATA_SET = DATA_PATH + FILE_NAME + ".csv"
+FINAL_OUTPUT = DATA_PATH + FILE_NAME + ".npy"
 
 # categories we want to extract
 CATEGORY_DICT = {"country": ["country"], "religious": ["christian", "praise", "worship", "gospel"],
@@ -132,16 +140,8 @@ if __name__ == "__main__":
     start = time.time()
 
     # FIRST STEP: read csv and filter out bad data
-    if not os.path.isfile(FILTERED_DATA_SET):
-        # filtered data file doesn't exist -> generate it
-        print("Filtering original data set...")
-        data = read_genre_lyrics_data()
-        print("Writing filtered data to CSV...")
-        data.to_csv(FILTERED_DATA_SET)
-    else:
-        # filtered data file exists -> read it
-        print("Reading filtered data set...")
-        data = pandas.read_csv(FILTERED_DATA_SET)
+    print("Filtering original data set...")
+    data = read_genre_lyrics_data()
 
     # SECOND STEP: Expand contractions within the lyrics texts
     print("Expanding contractions...")
