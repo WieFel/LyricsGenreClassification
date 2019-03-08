@@ -18,8 +18,8 @@ filtering the data to obtain just the songs with the genres of interest for our 
 about 30.000 that in the end also showed better results in the project implementation.<br/>
 
 Links to the two datasets:
-<a href="https://www.kaggle.com/mousehead/songlyrics">55000+ Song Lyrics</a>
-<a href="https://www.kaggle.com/artimous/every-song-you-have-heard-almost">Every song you have heard (almost)!</a>
+- <a href="https://www.kaggle.com/mousehead/songlyrics">55000+ Song Lyrics</a><br/>
+- <a href="https://www.kaggle.com/artimous/every-song-you-have-heard-almost">Every song you have heard (almost)!</a> (this is the one we used in the end)
 
 
 ## Preprocessing
@@ -41,15 +41,17 @@ quantities of songs.
 | Hip-Hop           | 5.420          |
 | Religious         | 1.859          |
 
+The filtered data set containing the genres can be found <a href="https://drive.google.com/open?id=1-m1cfzDWbC4tQiwUm5EjtLVZVrU8XQkW">here</a>.
+
 #### 2. Expand contractions
 In this step, all the lyrics texts are taken and the contractions are expanded.
 
 #### 3. Tokenization
-The lyrics, which are still encoded as normal strings, are now tokenized ignoring the sentence- or 
+The lyrics, which are still encoded as normal strings, are now tokenized ignoring the sentence- or newline-structure. The output of tokenization is a simple list of words.
 
 #### 4. POS tagging and lemmatization
 In this step, the tokenized lyrics texts are taken, first POS tagged and then lemmatized. The POS tagging 
-converts the example text from above to pairs of `(word, POS tag)`. After the POS tagging, lemmatization is applied and 
+converts the list of words from above to pairs of `(word, POS tag)`. After the POS tagging, lemmatization is applied and 
 the text is transferred back to a normal list of words representation.
 
 #### 5. Filter stopwords
@@ -70,8 +72,8 @@ Those vectors are again written to a .npy-file and can then be used by a neural 
 
 ## Model training
 We tried two different approaches for training our neural network for lyrics-genre classification:
-- use an LSTM network directly on the preprocessed text-data (implemented in `ClassificationLSTM.py`)
-- apply feature extraction to the preprocessed text-data and feed the numerical vectors into a fully connected 
+1. use an LSTM network directly on the preprocessed text-data (implemented in `ClassificationLSTM.py`)
+2. apply feature extraction to the preprocessed text-data and feed the numerical vectors into a fully connected 
 neural network (implemented in `Classification.py`)
 
 After several tests and modifications, we came to the conclusion that the second mentioned approach yields a better 
@@ -83,7 +85,7 @@ The optimal parameters for the fully connected neural network were:
 - Number of steps: 20.000
 - 2 layers of 32 and 64 neurons
 
-The model achieved an average accuracy of 74% using 5-Fold cross-validation.
+The model achieved an average test-accuracy of 74% using 5-Fold cross-validation.
 
 ## Prediction
 In the end, one should be able to make actual predictions with the created model. Therefore we stored the final model 
