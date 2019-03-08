@@ -135,6 +135,23 @@ def filter_stopwords(data):
     data["text"] = data["text"].map(lambda words: filter(lambda w: w not in stop_words, words))
 
 
+# takes a text as input and applies the complete preprocessing pipeline (all steps)
+# it then returns the end result as a list of words
+def preprocessing_pipeline(text):
+    tokenizer = RegexpTokenizer(r'\w+')
+    lemmatizer = WordNetLemmatizer()
+    stop_words = set(stopwords.words('english'))  # stopwords as set to make lookups faster
+
+    text = str.lower(text)  # convert to lowercase
+
+    step1 = expand_contractions_in_text(text)
+    step2 = tokenizer.tokenize(step1)
+    step3 = pos_tag(step2)
+    step4 = lemmatize_text(lemmatizer, step3)
+    final = [w for w in step4 if w not in stop_words]
+    return final
+
+
 # ------------------------- MAIN CODE ------------------------- #
 if __name__ == "__main__":
     start = time.time()
