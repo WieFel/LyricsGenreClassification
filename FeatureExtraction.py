@@ -1,8 +1,9 @@
-import pickle, os, time
+import time, pickle
 import gensim
-from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
 from Preprocessing import DATA_PATH, FINAL_OUTPUT, FILE_NAME
+from gensim.models import Word2Vec
 
 VECTORIZED_DATA = DATA_PATH + FILE_NAME + "_vectorized.npy"
 DIMENSIONS = 75
@@ -59,6 +60,21 @@ def tfidf_weighted_averaged_word_vectorizer(documents, tfidf_vectors, tfidf_voca
 # saves the word2vec model to a file in order to be used for classification
 def save_model(model, filename):
     model.save(DATA_PATH + filename)
+
+
+def extract_feature_vector(text):
+    data = np.load(FINAL_OUTPUT)
+    lyrics = data[:, 1]  # take second column: lyrics
+    # lyrics = np.append(lyrics, text)
+    vectorizer, features = tfidf_extractor(lyrics)  # create tfidf vectorizer again
+
+    word2vec_model = Word2Vec.load(DATA_PATH + "word2vec_model")
+
+    vocabulary = set(word2vec_model.wv.index2word)  # get vocabulary from word2vec model
+    tfidf_vector = vectorizer.transform([text])  # get tfidf vector for text
+    feature_vector = tfidf_wtd_avg_word_vector(text, tfidf_vector, vectorizer.vocabulary_, word2vec_model,
+                                               vocabulary, DIMENSIONS)
+    return feature_vector
 
 
 # ------------------------- MAIN CODE ------------------------- #
