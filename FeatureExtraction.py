@@ -5,7 +5,7 @@ import numpy as np
 from Preprocessing import DATA_PATH, FINAL_OUTPUT, FILE_NAME
 
 VECTORIZED_DATA = DATA_PATH + FILE_NAME + "_vectorized.npy"
-DIMENSIONS = 300
+DIMENSIONS = 75
 
 
 # identity function for tokenizer
