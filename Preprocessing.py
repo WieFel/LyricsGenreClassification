@@ -13,8 +13,7 @@ FINAL_OUTPUT = DATA_PATH + "dataset_55plus.npy"
 
 # categories we want to extract
 CATEGORY_DICT = {"country": ["country"], "religious": ["christian", "praise", "worship", "gospel"],
-                 "hip-hop": ["hip-hop", "hip hop", "rap"], "metal": ["metal"], "jazz": ["jazz"],
-                 "electronic": ["electro"]}
+                 "hip-hop": ["hip-hop", "hip hop", "rap"], "metal": ["metal"], "jazz": ["jazz"]}
 ALL_CATEGORIES = [g for l in CATEGORY_DICT.values() for g in l]
 
 
@@ -66,8 +65,7 @@ def read_genre_lyrics_data():
           (d.genre.str.contains("hip hop")) |
           (d.genre.str.contains("rap")) |
           (d.genre.str.contains("metal")) |
-          (d.genre.str.contains("jazz")) |
-          (d.genre.str.contains("electro"))
+          (d.genre.str.contains("jazz"))
           ]
 
     d["genre"] = d["genre"].map(resume_genre)
