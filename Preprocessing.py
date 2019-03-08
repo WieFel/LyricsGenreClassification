@@ -35,7 +35,7 @@ def detect_language(text):
     else:
         return detection.details[0].language_name
 
-
+# assings the passed genre to its respective super-genre if it has one
 def resume_genre(genre):
     g = ""
     for c in ALL_CATEGORIES:
