@@ -29,9 +29,9 @@ genres = data[:, -1]  # take last column: genres
 
 # Parameters
 learning_rate = 0.001
-num_steps = 1000
+num_steps = 20000
 batch_size = 256
-display_step = 20000
+display_step = 1000
 
 # Network Parameters
 n_hidden_1 = 32  # 1st layer number of neurons
@@ -144,4 +144,3 @@ print("Average accuracy: " + str(float(sum(accuracies)) / len(accuracies)))
 
 #Print saved weights
 #chkp.print_tensors_in_checkpoint_file('./save/classifier5.ckpt', tensor_name='', all_tensors=True)
-
